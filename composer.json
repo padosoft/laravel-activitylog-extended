@@ -1,0 +1,45 @@
+{
+    "name": "padosoft/laravel-activitylog-extended",
+    "description": "An extension of spatie/laravel-activitylog for tracking model relations inside activites",
+    "homepage": "https://github.com/padosoft/laravel-activitylog-extended",
+    "keywords":
+    [
+        "padosoft",
+        "log",
+        "user",
+        "activity",
+        "laravel",
+        "audit"
+    ],
+    "authors": [
+        {
+            "name": "Leonardo Padovani",
+            "email": "helpdesk@padosoft.com",
+            "homepage": "https://www.padosoft.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "spatie/laravel-activitylog": "^3.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.2",
+        "orchestra/testbench": "^3.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Padosoft\\Laravel\\ActivitylogExtended\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Padosoft\\Laravel\\ActivitylogExtended\\Test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
