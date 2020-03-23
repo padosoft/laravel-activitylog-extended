@@ -101,6 +101,11 @@ class CustomActivityModel extends Model implements Activity
             ->where('subject_id', $subject->getKey());
     }
 
+    public function scopeForEvent(Builder $query, string $event): Builder
+    {
+        return $query->where('event', $event);
+    }
+
     public function getCustomPropertyAttribute()
     {
         return $this->changes();

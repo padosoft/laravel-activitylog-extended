@@ -5,6 +5,7 @@ namespace Padosoft\Laravel\ActivitylogExtended\Test;
 use Padosoft\Laravel\ActivitylogExtended\Models\Activity;
 use Padosoft\Laravel\ActivitylogExtended\Test\Models\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\App;
 use Padosoft\Laravel\ActivitylogExtended\Test\Models\Article;
 use Spatie\Activitylog\ActivitylogServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
@@ -72,6 +73,10 @@ abstract class TestCase extends OrchestraTestCase
 
         (new \CreateActivityLogTable())->up();
 
+        include_once '__DIR__'.'/../vendor/spatie/laravel-activitylog/migrations/add_event_column_to_activity_log_table.php.stub';
+
+        (new \AddEventColumnToActivityLogTable())->up();
+
         include_once '__DIR__'.'/..//migrations/enhance_activity_log_table.php.stub';
 
         (new \EnhanceActivityLogTable())->up();
@@ -126,5 +131,12 @@ abstract class TestCase extends OrchestraTestCase
     public function doNotMarkAsRisky()
     {
         $this->assertTrue(true);
+    }
+
+    public function isLaravel6OrLower(): bool
+    {
+        $majorVersion = (int) substr(App::version(), 0, 1);
+
+        return $majorVersion <= 6;
     }
 }
