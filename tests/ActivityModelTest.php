@@ -120,7 +120,7 @@ class ActivityModelTest extends TestCase
         $this->assertCount(1, $activities);
 
 
-        $this->assertRegexp('/users":"'.$user2->id.'"/',json_encode($activities->first()->properties));
+        $this->assertMatchesRegularExpression('/users":"'.$user2->id.'"/',json_encode($activities->first()->properties));
         $this->assertEquals($causer->getKey(), $activities->first()->causer_id);
         $this->assertEquals(get_class($causer), $activities->first()->causer_type);
         $this->assertEquals($Article->getKey(), $activities->first()->subject_id);

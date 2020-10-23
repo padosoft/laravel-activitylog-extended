@@ -72,12 +72,15 @@ abstract class TestCase extends OrchestraTestCase
         include_once '__DIR__'.'/../vendor/spatie/laravel-activitylog/migrations/create_activity_log_table.php.stub';
 
         (new \CreateActivityLogTable())->up();
+        if (file_exists('__DIR__'.'/../vendor/spatie/laravel-activitylog/migrations/add_event_column_to_activity_log_table.php.stub')){
+            include_once '__DIR__'.'/../vendor/spatie/laravel-activitylog/migrations/add_event_column_to_activity_log_table.php.stub';
+            (new \AddEventColumnToActivityLogTable())->up();
+        }
 
-        include_once '__DIR__'.'/../vendor/spatie/laravel-activitylog/migrations/add_event_column_to_activity_log_table.php.stub';
 
-        (new \AddEventColumnToActivityLogTable())->up();
 
-        include_once '__DIR__'.'/..//migrations/enhance_activity_log_table.php.stub';
+
+        include_once '__DIR__'.'/../migrations/enhance_activity_log_table.php.stub';
 
         (new \EnhanceActivityLogTable())->up();
     }
