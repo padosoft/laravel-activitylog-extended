@@ -20,7 +20,7 @@
         }
     ],
     "require": {
-        "spatie/laravel-activitylog": "^3.6"
+        "spatie/laravel-activitylog": "^4.0"
     },
     "require-dev": {
         "roave/security-advisories": "dev-latest",

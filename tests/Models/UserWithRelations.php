@@ -4,6 +4,7 @@ namespace Padosoft\Laravel\ActivitylogExtended\Test\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Padosoft\Laravel\ActivitylogExtended\Traits\LogsActivityWithRelations;
+use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\CausesActivity;
 use Illuminate\Contracts\Auth\Authenticatable;
 
@@ -82,5 +83,10 @@ class UserWithRelations extends Model implements Authenticatable
     public function articles()
     {
         return $this->hasMany(Article::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults();
     }
 }

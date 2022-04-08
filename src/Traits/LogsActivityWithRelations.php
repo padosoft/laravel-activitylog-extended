@@ -23,6 +23,10 @@ trait LogsActivityWithRelations
         self::bootLogsActivity();
     }*/
 
+    /**
+     * @param string $processingEvent
+     * @return array
+     */
     public function attributeValuesToBeLogged(string $processingEvent): array
     {
         $properties = $this->attributeValuesToBeLoggedBase($processingEvent);
@@ -32,19 +36,29 @@ trait LogsActivityWithRelations
         return $properties;
     }
 
+
+    /**
+     * @return mixed
+     */
     public function getAllRelatedActivites()
     {
         $model = ActivitylogServiceProvider::getActivityModelInstance();
-
-        return $model->allRelations($this)->get();
+        $subject = $this;
+        return $model->where(function ($q) use ($subject) {
+            $q->where('subject_type', '=', $subject->getMorphClass())
+                ->where('subject_id', $subject->getKey());
+        })->orWhere(function ($q) use ($subject) {
+            $q->where('causer_type', '=', $subject->getMorphClass())
+                ->where('causer_id', $subject->getKey());
+        })->orWhere('properties', 'LIKE', '%' . $subject->getTable() . '":"' . $subject->getKey() . '"%')->get();
     }
 
     /**
-     * @param $properties
+     * @param array $properties
      *
-     * @return mixed
+     * @return array
      */
-    public function setRelationsToBeLogged($properties)
+    public function setRelationsToBeLogged(array $properties): array
     {
         $relationships = $this->getModelRelations();
 

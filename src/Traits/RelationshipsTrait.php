@@ -13,7 +13,11 @@ use ReflectionMethod;
 
 trait RelationshipsTrait
 {
-    public function getModelRelations()
+    /**
+     * @return array
+     * @throws \ReflectionException
+     */
+    public function getModelRelations(): array
     {
 
         $model = new static;

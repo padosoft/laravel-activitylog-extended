@@ -3,11 +3,14 @@
 namespace Padosoft\Laravel\ActivitylogExtended\Test;
 
 use Auth;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Padosoft\Laravel\ActivitylogExtended\Models\Activity;
 use Padosoft\Laravel\ActivitylogExtended\Test\Models\User;
 use Padosoft\Laravel\ActivitylogExtended\Test\Models\Article;
+use Spatie\Activitylog\Contracts\Activity as ActivityContract;
 use Spatie\Activitylog\Exceptions\CouldNotLogActivity;
+use Spatie\Activitylog\Facades\CauserResolver;
 
 class ActivityloggerTest extends TestCase
 {
@@ -97,6 +100,35 @@ class ActivityloggerTest extends TestCase
 
         $this->assertEquals($user->id, $firstActivity->causer->id);
         $this->assertInstanceOf(User::class, $firstActivity->causer);
+    }
+
+    /** @test */
+    public function it_can_log_an_activity_with_a_causer_other_than_user_model()
+    {
+        $article = Article::first();
+        activity()
+            ->causedBy($article)
+            ->log($this->activityDescription);
+        $firstActivity = Activity::first();
+        $this->assertEquals($firstActivity->causer->id, $article->id);
+        $this->assertInstanceOf(Article::class, $firstActivity->causer);
+    }
+
+    /** @test */
+    public function it_can_log_an_activity_with_a_causer_that_has_been_set_from_other_context()
+    {
+        $causer = Article::first();
+        CauserResolver::setCauser($causer);
+
+        $article = Article::first();
+
+        activity()
+            ->log($this->activityDescription);
+
+        $firstActivity = Activity::first();
+
+        $this->assertEquals($firstActivity->causer->id, $article->id);
+        $this->assertInstanceOf(Article::class, $firstActivity->causer);
     }
 
     /** @test */
@@ -195,6 +227,29 @@ class ActivityloggerTest extends TestCase
     }
 
     /** @test */
+    public function it_can_log_activity_using_an_anonymous_causer()
+    {
+        activity()
+            ->causedByAnonymous()
+            ->log('hello poetsvrouwman');
+        $this->assertNull($this->getLastActivity()->causer_id);
+        $this->assertNull($this->getLastActivity()->causer_type);
+    }
+
+    /** @test */
+    public function it_will_override_the_logged_in_user_as_the_causer_when_an_anonymous_causer_is_specified()
+    {
+        $userId = 1;
+
+        Auth::login(User::find($userId));
+        activity()
+            ->byAnonymous()
+            ->log('hello poetsvrouwman');
+        $this->assertNull($this->getLastActivity()->causer_id);
+        $this->assertNull($this->getLastActivity()->causer_type);
+    }
+
+    /** @test */
     public function it_can_replace_the_placeholders()
     {
         $article = Article::create(['name' => 'article name']);
@@ -210,6 +265,17 @@ class ActivityloggerTest extends TestCase
         $expectedDescription = 'Subject name is article name, causer name is user name and property key is value and sub key subvalue';
 
         $this->assertEquals($expectedDescription, $this->getLastActivity()->description);
+    }
+
+    /** @test */
+    public function it_can_log_an_activity_with_event()
+    {
+        $article = Article::create(['name' => 'article name']);
+        activity()
+            ->performedOn($article)
+            ->event('create')
+            ->log('test event');
+        $this->assertEquals('create', $this->getLastActivity()->event);
     }
 
     /** @test */
@@ -242,5 +308,139 @@ class ActivityloggerTest extends TestCase
         $activityModel = activity()->log('test');
 
         $this->assertInstanceOf($activityClassName, $activityModel);
+    }
+
+    /** @test */
+    public function it_will_not_log_an_activity_when_the_log_is_manually_disabled()
+    {
+        activity()->disableLogging();
+
+        activity()->log($this->activityDescription);
+
+        $this->assertNull($this->getLastActivity());
+    }
+
+    /** @test */
+    public function it_will_log_an_activity_when_the_log_is_manually_enabled()
+    {
+        config(['activitylog.enabled' => false]);
+
+        activity()->enableLogging();
+
+        activity()->log($this->activityDescription);
+
+        $this->assertEquals($this->getLastActivity()->description, $this->activityDescription);
+    }
+
+    /** @test */
+    public function it_accepts_null_parameter_for_caused_by()
+    {
+        activity()->causedBy(null)->log('nothing');
+
+        $this->assertTrue(true);
+    }
+
+    /** @test */
+    public function it_can_log_activity_when_attributes_are_changed_with_tap()
+    {
+        $properties = [
+            'property' => [
+                'subProperty' => 'value',
+            ],
+        ];
+
+        activity()
+            ->tap(function (ActivityContract $activity) use ($properties) {
+                $activity->properties = collect($properties);
+                $activity->created_at = Carbon::yesterday()->startOfDay();
+            })
+            ->log($this->activityDescription);
+
+        $firstActivity = Activity::first();
+
+
+        $this->assertInstanceOf(Collection::class, $firstActivity->properties);
+
+        $this->assertEquals($firstActivity->getExtraProperty('property.subProperty'), 'value');
+        $this->assertEquals($firstActivity->created_at->format('Y-m-d H:i:s'), Carbon::yesterday()->startOfDay()->format('Y-m-d H:i:s'));
+    }
+
+    /** @test */
+    public function it_will_log_a_custom_created_at_date_time()
+    {
+        $activityDateTime = now()->subDays(10);
+
+        activity()
+            ->createdAt($activityDateTime)
+            ->log('created');
+
+        $firstActivity = Activity::first();
+
+        $this->assertEquals($firstActivity->created_at->toAtomString(), $activityDateTime->toAtomString());
+    }
+
+    /** @test */
+    public function it_will_disable_logs_for_a_callback()
+    {
+        $result = activity()->withoutLogs(function () {
+            activity()->log('created');
+
+            return 'hello';
+        });
+
+        $this->assertNull($this->getLastActivity());
+        $this->assertEquals('hello', $result);
+    }
+
+    /** @test */
+    public function it_will_disable_logs_for_a_callback_without_affecting_previous_state()
+    {
+        activity()->withoutLogs(function () {
+            activity()->log('created');
+        });
+
+        $this->assertNull($this->getLastActivity());
+
+        activity()->log('outer');
+
+        $this->assertEquals('outer', $this->getLastActivity()->description);
+    }
+
+    /** @test */
+    public function it_will_disable_logs_for_a_callback_without_affecting_previous_state_even_when_already_disabled()
+    {
+        activity()->disableLogging();
+
+        activity()->withoutLogs(function () {
+            activity()->log('created');
+        });
+
+        $this->assertNull($this->getLastActivity());
+
+        activity()->log('outer');
+
+        $this->assertNull($this->getLastActivity());
+    }
+
+    /** @test */
+    public function it_will_disable_logs_for_a_callback_without_affecting_previous_state_even_with_exception()
+    {
+        activity()->disableLogging();
+
+        try {
+            activity()->withoutLogs(function () {
+                activity()->log('created');
+
+                throw new \Exception('OH NO');
+            });
+        } catch (\Exception $ex) {
+            //
+        }
+
+        $this->assertNull($this->getLastActivity());
+
+        activity()->log('outer');
+
+        $this->assertNull($this->getLastActivity());
     }
 }

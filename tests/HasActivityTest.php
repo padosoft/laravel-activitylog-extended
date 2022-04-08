@@ -6,6 +6,7 @@ use Padosoft\Laravel\ActivitylogExtended\Models\Activity;
 use Padosoft\Laravel\ActivitylogExtended\Test\Models\User;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Padosoft\Laravel\ActivitylogExtended\Traits\LogsActivityWithRelations;
+use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\CausesActivity;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -13,7 +14,7 @@ class HasActivityTest extends TestCase
 {
     protected $user;
 
-    public function setUp():void
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -21,6 +22,11 @@ class HasActivityTest extends TestCase
             use LogsActivity;
             use CausesActivity;
             use SoftDeletes;
+
+            public function getActivitylogOptions(): LogOptions
+            {
+                return LogOptions::defaults();
+            }
         };
 
         $this->assertCount(0, Activity::all());

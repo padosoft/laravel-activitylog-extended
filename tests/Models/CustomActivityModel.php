@@ -2,6 +2,7 @@
 
 namespace Padosoft\Laravel\ActivitylogExtended\Test\Models;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,14 +47,14 @@ class CustomActivityModel extends Model implements Activity
      *
      * @return mixed
      */
-    public function getExtraProperty(string $propertyName)
+    public function getExtraProperty(string $propertyName): mixed
     {
-        return array_get($this->properties->toArray(), $propertyName);
+        return Arr::get($this->properties->toArray(), $propertyName);
     }
 
     public function changes(): Collection
     {
-        if (! $this->properties instanceof Collection) {
+        if (!$this->properties instanceof Collection) {
             return new Collection();
         }
 
