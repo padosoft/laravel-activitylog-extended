@@ -48,14 +48,18 @@ trait RelationshipsTrait
 
                     if ($type == 'MorphTo') {
                         $model_relation = $this->{$return->getMorphType()};
-                        $foreignTable[0] = $return->createModelByType($model_relation)->getTable();
+                        if($model_relation !== null) {
+                            $foreignTable[0] = $return->createModelByType($model_relation)->getTable();
+                        }
                     }
-                    $relationships[$method->getName()] = [
-                        'foreignKey' => $foreignKey,
-                        'foreignTable' => $foreignTable[0],
-                        'type' => (new ReflectionClass($return))->getShortName(),
-                        'model' => $model_relation,
-                    ];
+                    if($model_relation !== null) {
+                        $relationships[$method->getName()] = [
+                            'foreignKey' => $foreignKey,
+                            'foreignTable' => $foreignTable[0],
+                            'type' => (new ReflectionClass($return))->getShortName(),
+                            'model' => $model_relation,
+                        ];
+                    }
                 }
             } catch (ErrorException $e) {
             } finally {
