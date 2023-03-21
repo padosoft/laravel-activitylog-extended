@@ -47,9 +47,9 @@ class CustomActivityModel extends Model implements Activity
      *
      * @return mixed
      */
-    public function getExtraProperty(string $propertyName): mixed
+    public function getExtraProperty(string $propertyName, mixed $defaultValue): mixed
     {
-        return Arr::get($this->properties->toArray(), $propertyName);
+        return Arr::get($this->properties->toArray(), $propertyName,$defaultValue);
     }
 
     public function changes(): Collection
