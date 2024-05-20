@@ -164,7 +164,6 @@ class LogsActivityTest extends TestCase
         $article->delete();
 
         $article->restore();
-
         $this->assertCount(3, Activity::all());
 
         $this->assertEquals(get_class($this->article), $this->getLastActivity()->subject_type);

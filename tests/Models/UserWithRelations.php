@@ -89,4 +89,9 @@ class UserWithRelations extends Model implements Authenticatable
     {
         return LogOptions::defaults();
     }
+
+    public function getAuthPasswordName()
+    {
+        return 'password';
+    }
 }
